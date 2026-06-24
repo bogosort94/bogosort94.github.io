@@ -1,0 +1,491 @@
+---
+// Landing 爆炸星形
+// p5.js — 整体一个连续多边形，鼠标角度场驱动形变
+// 各尖刺末端支持图片（径向渐变遮罩淡入）
+---
+
+<div id="explosion-wrap" aria-hidden="true"></div>
+<div aria-hidden="true" style="position:absolute;visibility:hidden;font-size:0;font-family:'ZCOOL XiaoWei',serif;">声</div>
+<div aria-hidden="true" style="position:absolute;visibility:hidden;font-size:0;font-family:'Playfair Display',serif;">a</div>
+
+<script>
+import p5 from 'p5';
+
+const sketch = (p: any) => {
+  const W = 640, H = 400, CX = W / 2, CY = H / 2;
+  // y 轴压缩系数 — 让整体更扁
+  const YS = 0.68;
+  const N = 120;
+
+  const MAIN_ARMS = [
+    { angle: -145, label: '声 · Sound',  imgKey: 'Sound',  reach: 165, hasImage: true, labelOffset: 0.28 },
+    { angle:  -35, label: '味 · Taste',  imgKey: 'Taste',  reach: 175, hasImage: true, labelOffset: 0.5  },
+    { angle:   10, label: '光 · Light',  imgKey: 'Light',  reach: 168, hasImage: true, labelOffset: 0.28 },
+    { angle:  172, label: '理 · Reason', imgKey: 'Reason', reach: 172, hasImage: true, labelOffset: 0.5  },
+  ];
+  const MED_SPIKES = [-52, -22, 55, 80, 148, 165, 242, 268];
+
+  const imgBuffers: Record<string, any> = {};
+
+  function angDiff(a: number, b: number) {
+    let d = ((a - b) % 360 + 360) % 360;
+    if (d > 180) d -= 360;
+    return d;
+  }
+
+  // y 压缩后的屏幕坐标
+  function toXY(rad: number, r: number) {
+    return { x: CX + Math.cos(rad) * r, y: CY + Math.sin(rad) * r * YS };
+  }
+
+  function baseRadius(deg: number) {
+    let r = 22;
+    for (const arm of MAIN_ARMS) {
+      const diff = angDiff(deg, arm.angle);
+      if (Math.abs(diff) < 7) {
+        const t = 1 - Math.abs(diff) / 7;
+        r = Math.max(r, arm.reach * Math.pow(t, 0.35));
+      }
+    }
+    for (const sp of MED_SPIKES) {
+      const diff = angDiff(deg, sp);
+      if (Math.abs(diff) < 5) {
+        const t = 1 - Math.abs(diff) / 5;
+        r = Math.max(r, 70 * Math.pow(t, 0.4));
+      }
+    }
+    if (r < 28) r = 20 + 10 * Math.pow(Math.sin(p.radians(deg * 3.7)), 2);
+    return r;
+  }
+
+  function buildMusicImage(size: number) {
+    const g = p.createGraphics(size, size);
+    g.pixelDensity(2);
+    const cx = size / 2, cy = size / 2;
+    g.clear();
+    const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const col = dark ? [200, 196, 185] : [45, 43, 38];
+    const acc = dark ? [143, 168, 144] : [74, 93, 78];
+
+    // 五线谱
+    const staffW = size * 0.72;
+    const x0 = cx - staffW / 2;
+    const x1 = cx + staffW / 2;
+    const lineGap = 8;
+    const staffTop = cy - lineGap * 2;
+
+    g.stroke(...col as [number,number,number], 220);
+    g.strokeWeight(1.2);
+    for (let i = 0; i < 5; i++) {
+      const y = staffTop + i * lineGap;
+      g.line(x0, y, x1, y);
+    }
+
+    // 音符：椭圆符头 + 符干，放在谱线上/间
+    // 音符位置：[x比例, 谱线位置（0=第一线，0.5=第一间，依次类推，可超出）]
+    const notes = [
+      { xr: 0.08, pos: 2.0,  dur: 'quarter' },
+      { xr: 0.28, pos: 1.0,  dur: 'quarter' },
+      { xr: 0.48, pos: 3.0,  dur: 'half'    },
+      { xr: 0.68, pos: 0.5,  dur: 'quarter' },
+      { xr: 0.85, pos: 2.5,  dur: 'quarter' },
+    ];
+
+    for (const n of notes) {
+      const nx = x0 + staffW * n.xr;
+      const ny = staffTop + n.pos * lineGap;
+      const stemUp = n.pos >= 2;
+      const isAcc = n.dur === 'half';
+
+      // 符头
+      g.push();
+      g.translate(nx, ny);
+      g.rotate(-0.3);
+      g.noStroke();
+      g.fill(...(isAcc ? acc : col) as [number,number,number], 240);
+      if (n.dur === 'half') {
+        // 空心符头
+        g.stroke(...acc as [number,number,number], 240);
+        g.strokeWeight(1.5);
+        g.fill(0, 0, 0, 0);
+      }
+      g.ellipse(0, 0, 9, 7);
+      g.pop();
+
+      // 符干
+      g.stroke(...col as [number,number,number], 220);
+      g.strokeWeight(1.2);
+      if (stemUp) {
+        g.line(nx + 4, ny, nx + 4, ny - lineGap * 3);
+      } else {
+        g.line(nx - 4, ny, nx - 4, ny + lineGap * 3);
+      }
+
+      // 符杠（附点/连音线）— 第一和第二音符加一根连线
+    }
+
+    // 连音弧线（第1-2音符）
+    g.noFill();
+    g.stroke(...col as [number,number,number], 160);
+    g.strokeWeight(1);
+    const n0 = notes[0], n1 = notes[1];
+    const ax0 = x0 + staffW * n0.xr, ay0 = staffTop + n0.pos * lineGap + 6;
+    const ax1 = x0 + staffW * n1.xr, ay1 = staffTop + n1.pos * lineGap + 6;
+    g.arc(
+      (ax0 + ax1) / 2, (ay0 + ay1) / 2 + 4,
+      ax1 - ax0 + 6, 10,
+      0, Math.PI
+    );
+
+    // 加线（第一音符超出五线谱，补一根加线）
+    g.stroke(...col as [number,number,number], 200);
+    g.strokeWeight(1.2);
+    const ledgerX = x0 + staffW * notes[1].xr;
+    g.line(ledgerX - 8, staffTop + lineGap, ledgerX + 8, staffTop + lineGap);
+
+    return g;
+  }
+
+  function buildWhiskyImage(size: number) {
+    const g = p.createGraphics(size, size);
+    g.pixelDensity(2);
+    const cx = size / 2, cy = size / 2;
+    g.clear();
+    const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const col    = dark ? [200, 196, 185] : [45, 43, 38];
+    const liquid = dark ? [180, 130, 60]  : [160, 100, 30];
+    const ice    = dark ? [190, 210, 220] : [140, 170, 190];
+
+    // 老式威士忌杯（rocks glass）侧视图
+    const tw = 44, bw = 36, gh = 42, baseH = 5;
+    const tx = cx - tw / 2, bx = cx - bw / 2;
+    const top = cy - gh / 2 - baseH, bot = cy + gh / 2;
+
+    // 液体（琥珀色，填充约 60%）
+    const liquidTop = top + gh * 0.38;
+    g.noStroke();
+    g.fill(...liquid as [number,number,number], dark ? 180 : 160);
+    g.beginShape();
+    g.vertex(tx + (bx - tx) * ((bot - liquidTop) / gh), liquidTop);
+    g.vertex(tx + tw - (bx - tx) * ((bot - liquidTop) / gh), liquidTop);
+    g.vertex(bx + bw, bot);
+    g.vertex(bx, bot);
+    g.endShape(p.CLOSE);
+
+    // 冰块
+    g.fill(...ice as [number,number,number], 180);
+    g.rect(cx - 10, liquidTop + 4, 12, 12, 2);
+    g.rect(cx + 2,  liquidTop + 8, 10, 10, 2);
+
+    // 杯体轮廓
+    g.noFill();
+    g.stroke(...col as [number,number,number], 255);
+    g.strokeWeight(2);
+    g.beginShape();
+    g.vertex(tx, top);
+    g.vertex(bx, bot);
+    g.vertex(bx + bw, bot);
+    g.vertex(tx + tw, top);
+    g.endShape();
+    // 杯口横线
+    g.line(tx, top, tx + tw, top);
+    // 底座
+    g.strokeWeight(2.5);
+    g.line(bx - 4, bot + baseH, bx + bw + 4, bot + baseH);
+    g.strokeWeight(1.5);
+    g.line(bx, bot, bx - 4, bot + baseH);
+    g.line(bx + bw, bot, bx + bw + 4, bot + baseH);
+
+    return g;
+  }
+
+  function buildLightImage(size: number) {
+    const g = p.createGraphics(size, size);
+    g.pixelDensity(2);
+    const cx = size / 2, cy = size / 2;
+    g.clear();
+    const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const col = dark ? [200, 196, 185] : [45, 43, 38];
+
+    // 棱镜：等边三角形，居中
+    const pw = 34, ph = 42;
+    const pt = { x: cx,          y: cy - ph / 2 };
+    const pb = { x: cx - pw / 2, y: cy + ph / 2 };
+    const pr = { x: cx + pw / 2, y: cy + ph / 2 };
+
+    // 入射光线：从左侧射入左边中点
+    const entryX = (pb.x + pt.x) / 2, entryY = (pb.y + pt.y) / 2 - 2;
+    g.stroke(...col as [number,number,number], 180);
+    g.strokeWeight(1.5);
+    g.line(cx - 56, entryY, entryX, entryY);
+
+    // 折射光谱：从右边中点扇形发散
+    const exitX = (pr.x + pt.x) / 2, exitY = (pr.y + pt.y) / 2 - 2;
+    const spectrum = [
+      [220, 80,  80,  210],
+      [230, 150, 60,  210],
+      [210, 200, 70,  210],
+      [90,  190, 100, 210],
+      [80,  140, 210, 210],
+      [150, 90,  210, 210],
+    ];
+    g.strokeWeight(2);
+    const baseAngle = -0.28, spread = 0.72;
+    for (let i = 0; i < spectrum.length; i++) {
+      const a = baseAngle + (i / (spectrum.length - 1)) * spread;
+      const ex = exitX + Math.cos(a) * 50;
+      const ey = exitY + Math.sin(a) * 50;
+      g.stroke(...spectrum[i] as [number,number,number,number]);
+      g.line(exitX, exitY, ex, ey);
+    }
+
+    // 棱镜轮廓
+    g.noFill();
+    g.stroke(...col as [number,number,number], 220);
+    g.strokeWeight(1.8);
+    g.triangle(pt.x, pt.y, pb.x, pb.y, pr.x, pr.y);
+
+    return g;
+  }
+
+  function buildSystemsImage(size: number) {
+    const g = p.createGraphics(size, size);
+    g.pixelDensity(2);
+    const cx = size / 2, cy = size / 2;
+    g.clear();
+
+    const zones = [
+      { zx: cx,      zy: cy - 36, nodes: [{ ox: -12, oy: 0 }, { ox: 12, oy: 0 }], leader: true  },
+      { zx: cx - 34, zy: cy + 22, nodes: [{ ox: -10, oy: 0 }, { ox: 10, oy: 0 }], leader: false },
+      { zx: cx + 34, zy: cy + 22, nodes: [{ ox: -10, oy: 0 }, { ox: 10, oy: 0 }], leader: false },
+    ];
+
+    // 检测 dark mode，选对应色系
+    const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const zoneStroke = dark ? [200, 196, 185] : [50, 48, 42];
+    const zoneFill   = dark ? [200, 196, 185, 40] : [50, 48, 42, 40];
+    const lineCol    = dark ? [180, 176, 165] : [60, 57, 50];
+    const nodeDim    = dark ? [160, 156, 145] : [70, 67, 58];
+    const nodeAccent = dark ? [143, 168, 144] : [74, 93, 78];  // --accent
+
+    // zone fills & borders
+    for (const z of zones) {
+      g.noStroke();
+      g.fill(...(z.leader ? [...nodeAccent, 35] : [...zoneFill]));
+      g.rect(z.zx - 28, z.zy - 13, 56, 26, 5);
+      g.stroke(...zoneStroke, 255);
+      g.strokeWeight(1.8);
+      g.noFill();
+      g.rect(z.zx - 28, z.zy - 13, 56, 26, 5);
+    }
+
+    // dashed replication lines
+    const pairs = [[0,1],[0,2],[1,2]];
+    for (const [a, b] of pairs) {
+      const za = zones[a], zb = zones[b];
+      const dx = zb.zx - za.zx, dy = zb.zy - za.zy;
+      const dist = Math.sqrt(dx*dx+dy*dy);
+      const steps = Math.floor(dist / 7);
+      g.stroke(...lineCol, 255);
+      g.strokeWeight(1.5);
+      for (let s = 0; s < steps; s += 2) {
+        const t0 = s / steps, t1 = (s + 1) / steps;
+        g.line(za.zx + dx*t0, za.zy + dy*t0, za.zx + dx*t1, za.zy + dy*t1);
+      }
+    }
+
+    // nodes
+    for (const z of zones) {
+      for (const n of z.nodes) {
+        g.noStroke();
+        g.fill(...(z.leader ? [...nodeAccent, 255] : [...nodeDim, 255]));
+        g.ellipse(z.zx + n.ox, z.zy + n.oy, 10, 10);
+      }
+    }
+
+    // commit arrow
+    const lz = zones[0];
+    g.stroke(...nodeAccent, 255);
+    g.strokeWeight(2);
+    g.fill(...nodeAccent, 255);
+    g.line(lz.zx - 13, lz.zy, lz.zx + 2, lz.zy);
+    g.triangle(lz.zx + 9, lz.zy, lz.zx + 2, lz.zy - 4, lz.zx + 2, lz.zy + 4);
+
+    return g;
+  }
+
+  // 径向渐变遮罩，fade 从 fadeStart 比例开始；active 时整体更亮
+  function drawArmImage(buf: any, px: number, py: number, imgR: number, active = false, fadeStart = 0.62) {
+    const ctx = p.drawingContext as CanvasRenderingContext2D;
+    ctx.save();
+    ctx.globalAlpha = active ? 1.0 : 0.82;
+    ctx.beginPath();
+    ctx.arc(px, py, imgR, 0, Math.PI * 2);
+    ctx.clip();
+    const s = imgR * 2;
+    ctx.drawImage(buf.elt, px - imgR, py - imgR, s, s);
+    const fs = active ? 0.88 : fadeStart + 0.08;
+    const grad = ctx.createRadialGradient(px, py, imgR * fs, px, py, imgR);
+    grad.addColorStop(0, 'rgba(0,0,0,0)');
+    grad.addColorStop(1, 'rgba(0,0,0,1)');
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.fillStyle = grad;
+    ctx.fillRect(px - imgR, py - imgR, s, s);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.restore();
+  }
+
+  let noiseT = 0;
+  let mx = CX, my = CY, rawMx = CX, rawMy = CY;
+
+  function readColors() {
+    const cs = getComputedStyle(document.documentElement);
+    return {
+      fill:     cs.getPropertyValue('--bg').trim()       || '#f4f1ea',
+      stroke:   cs.getPropertyValue('--ink-soft').trim() || '#6b675f',
+      labelDim: cs.getPropertyValue('--ink-soft').trim() || '#6b675f',
+      labelLit: cs.getPropertyValue('--ink').trim()      || '#2b2926',
+    };
+  }
+  let COL = readColors();
+
+  p.setup = () => {
+    const c = p.createCanvas(W, H);
+    c.parent('explosion-wrap');
+    p.frameRate(60);
+    imgBuffers['Sound']  = buildMusicImage(160);
+    imgBuffers['Taste']  = buildWhiskyImage(160);
+    imgBuffers['Light']  = buildLightImage(160);
+    imgBuffers['Reason'] = buildSystemsImage(160);
+    const wrap = document.getElementById('explosion-wrap')!;
+    wrap.addEventListener('mousemove', (e: MouseEvent) => {
+      const r = c.elt.getBoundingClientRect();
+      rawMx = (e.clientX - r.left) / r.width * W;
+      rawMy = (e.clientY - r.top) / r.height * H;
+    });
+    wrap.addEventListener('mouseleave', () => { rawMx = CX; rawMy = CY; });
+    window.matchMedia('(prefers-color-scheme: dark)')
+      .addEventListener('change', () => { COL = readColors(); });
+  };
+
+  p.draw = () => {
+    p.clear();
+    noiseT += 0.008;
+    mx += (rawMx - mx) * 0.1;
+    my += (rawMy - my) * 0.1;
+
+    // 鼠标坐标逆变换回等比空间，使角度判断正确
+    const mxNorm = mx - CX;
+    const myNorm = (my - CY) / YS;
+    const mouseAngle = Math.atan2(myNorm, mxNorm) * 180 / Math.PI;
+    const mouseDist  = Math.sqrt(mxNorm ** 2 + myNorm ** 2);
+    const influence  = p.constrain(mouseDist / 220, 0, 1);
+
+    let activeArm = -1, bestDiff = 999;
+    for (let i = 0; i < 4; i++) {
+      const d = Math.abs(angDiff(mouseAngle, MAIN_ARMS[i].angle));
+      if (d < bestDiff) { bestDiff = d; activeArm = i; }
+    }
+    if (bestDiff > 50 || mouseDist < 55) activeArm = -1;
+
+    // 形状顶点（含 y 压缩）
+    const pts: { x: number; y: number }[] = [];
+    for (let i = 0; i < N; i++) {
+      const deg = (i / N) * 360 - 180;
+      const rad = p.radians(deg);
+      const nv = p.noise(Math.cos(rad) * 1.8 + 10, Math.sin(rad) * 1.8 + 10, noiseT) - 0.5;
+      let r = baseRadius(deg);
+      const dm = Math.abs(angDiff(deg, mouseAngle));
+      r += Math.exp(-dm * dm / 120) * influence * 18;
+      r += nv * (r > 60 ? 8 : 3);
+      const pos = toXY(rad, r);
+      pts.push(pos);
+    }
+
+    // arm images（形状后面）
+    const imgR = 48;
+    const LABEL_H = 24;
+    const PAD = 10;
+    const armImgPos: { x: number; y: number }[] = [];
+    for (let i = 0; i < 4; i++) {
+      const arm = MAIN_ARMS[i];
+      const rad = p.radians(arm.angle);
+      const nv = p.noise(Math.cos(rad) * 1.8 + 10, Math.sin(rad) * 1.8 + 10, noiseT) - 0.5;
+      const dm = Math.abs(angDiff(arm.angle, mouseAngle));
+      // 计算该方向允许的最大 reach（保证图片+标签不超出画布）
+      const totalOutset = imgR * 1.5 + imgR * 0.5 + LABEL_H + PAD;
+      const ax = Math.abs(Math.cos(rad));
+      const ay = Math.abs(Math.sin(rad) * YS);
+      const maxByX = ax > 0.01 ? (CX - PAD - totalOutset * ax) / ax : Infinity;
+      const maxByY = ay > 0.01 ? (Math.min(CY, H - CY) - PAD - totalOutset * ay) / ay : Infinity;
+      const safeReach = Math.min(arm.reach, maxByX, maxByY);
+      const tipR = p.constrain(
+        safeReach + Math.exp(-dm * dm / 120) * influence * 18 + nv * 6,
+        0, safeReach + 18
+      );
+      const imgPos = toXY(rad, tipR + imgR * 1.5);
+      armImgPos.push(imgPos);
+      if (arm.hasImage && imgBuffers[arm.imgKey]) {
+        drawArmImage(imgBuffers[arm.imgKey], imgPos.x, imgPos.y, imgR, i === activeArm);
+      }
+    }
+
+    // 形状
+    p.fill(COL.fill);
+    p.stroke(COL.stroke);
+    p.strokeWeight(1.8);
+    p.beginShape();
+    for (const pt of pts) p.curveVertex(pt.x, pt.y);
+    for (let i = 0; i < 3; i++) p.curveVertex(pts[i].x, pts[i].y);
+    p.endShape();
+
+    // 标签（有图的放图片正下方，其他沿尖刺方向）
+    for (let i = 0; i < 4; i++) {
+      const arm = MAIN_ARMS[i];
+      const active = i === activeArm;
+      let lx: number, ly: number;
+      if (arm.hasImage) {
+        lx = armImgPos[i].x;
+        ly = armImgPos[i].y + imgR * arm.labelOffset + 6;
+      } else {
+        // label 位置复用 armImgPos 方向，沿尖刺延伸
+        const rad = p.radians(arm.angle);
+        const lpos = toXY(rad, arm.reach + 36);
+        lx = lpos.x; ly = lpos.y;
+      }
+      const [zh, en] = arm.label.split(' · ');
+      const sz = active ? 16 : 14;
+      const color = active ? COL.labelLit : COL.labelDim;
+      const ctx = p.drawingContext as CanvasRenderingContext2D;
+      ctx.save();
+      ctx.fillStyle = color;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.font = `${sz}px "ZCOOL XiaoWei", serif`;
+      ctx.fillText(zh, lx, ly);
+      ctx.font = `italic ${sz - 2}px "Playfair Display", serif`;
+      ctx.fillText(en, lx, ly + sz + 2);
+      ctx.restore();
+    }
+
+    p.fill(COL.labelDim);
+    p.noStroke();
+    p.ellipse(CX, CY, 4, 4);
+  };
+};
+
+document.fonts.ready.then(() => new p5(sketch));
+</script>
+
+<style>
+  #explosion-wrap {
+    width: min(640px, 95vw);
+    height: min(400px, 59vw);
+    margin-inline: auto;
+  }
+  #explosion-wrap :global(canvas) {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+  }
+</style>

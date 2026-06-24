@@ -1,0 +1,23 @@
+---
+import Base from '../layouts/Base.astro';
+// About —— 叙事式，非简历。内容待细化。
+---
+
+<Base title="About · 田博雨">
+  <section class="wrap page">
+    <span class="eyebrow">About</span>
+    <h1>关于</h1>
+    <div class="prose">
+      <p>（叙事式介绍，待补充。）</p>
+      <p class="en">(Narrative bio, to be written.)</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .page { max-width: 42rem; padding-block: 4rem; }
+  .page h1 { font-size: clamp(2rem, 5vw, 2.75rem); margin-top: 0.4rem; }
+  .prose { margin-top: 2.5rem; }
+  .prose p { margin-block: 1.2rem; }
+  .prose .en { color: var(--ink-faint); font-style: italic; }
+</style>

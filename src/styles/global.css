@@ -1,0 +1,82 @@
+/* ============================================================
+   日式编辑室 — 设计系统
+   暖米白底 + 衬线标题 + 克制留白
+   ============================================================ */
+
+:root {
+  /* 色彩 —— 不用纯白纯黑 */
+  --bg:          #f4f1ea;  /* 暖米白 */
+  --bg-soft:     #ece8df;  /* 略深的卡片底 */
+  --ink:         #2b2926;  /* 主文字，近墨非黑 */
+  --ink-soft:    #6b675f;  /* 次要文字 */
+  --ink-faint:   #a39e94;  /* 提示/留白处文字 */
+  --line:        #d8d3c8;  /* 分隔线 */
+  --accent:      #4a5d4e;  /* 深墨绿点缀 */
+
+  /* 字体 */
+  --serif: 'ZCOOL XiaoWei', 'Playfair Display', serif;
+  --sans:  'Inter', system-ui, sans-serif;
+
+  /* 节奏 */
+  --measure: 64rem;   /* 内容最大宽度 */
+  --gutter:  clamp(1.5rem, 5vw, 4rem);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:        #1c1b18;  /* 极深炭灰 */
+    --bg-soft:   #25241f;
+    --ink:       #e6e1d6;
+    --ink-soft:  #a8a399;
+    --ink-faint: #6a665d;
+    --line:      #38362f;
+    --accent:    #8fa890;
+  }
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.7;
+  font-feature-settings: 'kern' 1, 'liga' 1;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--serif);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+a:hover { color: var(--accent); }
+
+::selection { background: var(--accent); color: var(--bg); }
+
+/* 通用布局容器 */
+.wrap {
+  max-width: var(--measure);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* 小字标签：等宽间距大写，编辑室质感 */
+.eyebrow {
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}

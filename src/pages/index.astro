@@ -1,0 +1,121 @@
+---
+import Base from '../layouts/Base.astro';
+import Explosion from '../components/Explosion.astro';
+
+// 「最近在做的事」—— 手动维护（见需求文档决策）
+const recent = [
+  { zh: '搭建自动化动量交易系统', en: 'Building an automated momentum trading system' },
+  { zh: '系统性学习 agentic engineering', en: 'Learning agentic engineering, systematically' },
+  { zh: '规划回国后的创业方向', en: 'Planning what to build after moving back' },
+];
+
+const links = [
+  { href: '/now', label: 'Now' },
+  { href: '/blog', label: 'Blog' },
+  { href: '/projects', label: 'Projects' },
+  { href: '/photos', label: 'Photos' },
+  { href: '/about', label: 'About' },
+];
+---
+
+<Base bareHeader>
+  <section class="hero">
+    <Explosion />
+
+    <div class="tagline">
+      <h1 lang="zh">不问前路·随心而动</h1>
+      <p class="en" lang="en">Follow curiosity, not career paths.</p>
+    </div>
+
+    <nav class="entries">
+      {links.map((l) => <a href={l.href}>{l.label}</a>)}
+    </nav>
+
+    <div class="recent">
+      <span class="eyebrow">Recently</span>
+      <ul>
+        {recent.map((r) => (
+          <li>
+            <span class="zh">{r.zh}</span>
+            <span class="en">{r.en}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-top: 0;
+    padding-bottom: 4rem;
+    text-align: center;
+  }
+  .tagline { margin-top: -5rem; cursor: default; }
+  .tagline h1 {
+    font-size: clamp(2.2rem, 6.5vw, 3.75rem);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    transition: letter-spacing 0.4s ease, color 0.3s ease;
+  }
+  .tagline:hover h1 {
+    letter-spacing: 0.14em;
+  }
+  .tagline .en {
+    margin-top: 0.75rem;
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: clamp(1.1rem, 2.8vw, 1.45rem);
+    letter-spacing: 0.02em;
+    color: var(--ink-faint);
+    transition: letter-spacing 0.4s ease;
+  }
+  .tagline:hover .en {
+    letter-spacing: 0.05em;
+  }
+  .entries {
+    display: flex;
+    gap: 1.75rem;
+    margin-top: 2.5rem;
+    font-size: 0.95rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .entries a {
+    position: relative;
+    padding-bottom: 2px;
+  }
+  .entries a::after {
+    content: '';
+    position: absolute;
+    left: 0; bottom: 0;
+    width: 0; height: 1px;
+    background: var(--accent);
+    transition: width 0.25s ease;
+  }
+  .entries a:hover::after { width: 100%; }
+
+  .recent {
+    margin-top: 4rem;
+    max-width: 32rem;
+    text-align: left;
+  }
+  .recent ul { list-style: none; margin-top: 0.75rem; }
+  .recent li {
+    padding-block: 0.5rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .recent li:last-child { border-bottom: none; }
+  .recent .zh { display: block; }
+  .recent .en {
+    display: block;
+    font-size: 0.82rem;
+    color: var(--ink-faint);
+    font-style: italic;
+  }
+</style>

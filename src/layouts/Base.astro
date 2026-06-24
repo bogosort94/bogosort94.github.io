@@ -1,0 +1,117 @@
+---
+import '../styles/global.css';
+import StarMark from '../components/StarMark.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** 首页不显示顶栏（爆炸图案是主角） */
+  bareHeader?: boolean;
+}
+
+const {
+  title = '田博雨 · Boyu Tian',
+  description = '不问前路，随心而动。',
+  bareHeader = false,
+} = Astro.props;
+
+const nav = [
+  { href: '/now', label: 'Now' },
+  { href: '/blog', label: 'Blog' },
+  { href: '/projects', label: 'Projects' },
+  { href: '/photos', label: 'Photos' },
+  { href: '/about', label: 'About' },
+];
+---
+
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- 字体：Cormorant Garamond（衬线标题）+ Inter（无衬线正文） -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    {!bareHeader && (
+      <header class="site-header wrap">
+        <a href="/" class="brand" aria-label="首页">
+          <StarMark size={24} />
+          <span class="brand-name">田博雨 <span class="sep">·</span> <span class="en">Boyu Tian</span></span>
+        </a>
+        <nav>
+          {nav.map((item) => (
+            <a href={item.href}>{item.label}</a>
+          ))}
+        </nav>
+      </header>
+    )}
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="site-footer wrap">
+      <span>© {new Date().getFullYear()} Boyu Tian</span>
+      <span class="eyebrow">不问前路，随心而动</span>
+    </footer>
+
+    <style>
+      .site-header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        padding-block: 1.75rem;
+        border-bottom: 1px solid var(--line);
+      }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        transition: color 0.2s ease;
+      }
+      .brand:hover { color: var(--accent); }
+      .brand:hover :global(.starmark) { color: var(--accent); transform: rotate(45deg); }
+      .brand-name {
+        font-family: var(--serif);
+        font-size: 1.35rem;
+        letter-spacing: 0.02em;
+      }
+      .brand-name .sep { margin-inline: 0.15em; opacity: 0.4; }
+      .brand-name .en {
+        font-style: italic;
+        font-size: 0.92em;
+        opacity: 0.7;
+      }
+      .site-header nav {
+        display: flex;
+        gap: 1.75rem;
+        font-size: 0.9rem;
+      }
+      main { min-height: 60vh; }
+      .site-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-block: 3rem;
+        margin-top: 5rem;
+        border-top: 1px solid var(--line);
+        color: var(--ink-faint);
+        font-size: 0.85rem;
+      }
+      @media (max-width: 640px) {
+        .site-header { flex-direction: column; gap: 1rem; align-items: flex-start; }
+        .site-header nav { gap: 1.25rem; flex-wrap: wrap; }
+      }
+    </style>
+  </body>
+</html>

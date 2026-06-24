@@ -1,0 +1,50 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+type Props = { post: CollectionEntry<'blog'> };
+const { post } = Astro.props;
+const { Content } = await post.render();
+
+const fmt = (d: Date) =>
+  d.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' });
+---
+
+<Base title={`${post.data.title} · 田博雨`} description={post.data.description}>
+  <article class="wrap post">
+    <header>
+      <time>{fmt(post.data.date)}</time>
+      <h1>{post.data.title}</h1>
+      <p class="tags">{post.data.tags.join(' · ')}</p>
+    </header>
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+</Base>
+
+<style>
+  .post { max-width: 42rem; padding-block: 4rem; }
+  .post header { text-align: center; margin-bottom: 3rem; }
+  .post time { color: var(--ink-faint); font-size: 0.85rem; }
+  .post h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); margin-top: 0.5rem; }
+  .post .tags { color: var(--ink-faint); font-size: 0.8rem; margin-top: 0.75rem; }
+  .prose :global(p) { margin-block: 1.2rem; }
+  .prose :global(h2) { font-size: 1.6rem; margin-top: 2.5rem; }
+  .prose :global(h3) { font-size: 1.3rem; margin-top: 2rem; }
+  .prose :global(a) { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+  .prose :global(blockquote) {
+    border-left: 2px solid var(--line);
+    padding-left: 1.25rem;
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+</style>
