@@ -360,13 +360,6 @@ const knots: Knot[] = [
   .row.in:is(:hover, :focus-within) .weft:nth-child(3) .weft-line { transition-delay: 0.48s; }
   .row.in:is(:hover, :focus-within) .weft:nth-child(3) .weft-body { transition-delay: 0.56s; }
 
-  /* 触屏设备：无 hover，纬线常显 */
-  @media (hover: none) {
-    .wefts { grid-template-rows: 1fr; }
-    .row.in .weft-line { width: 3.4rem; }
-    .row.in .weft-body { opacity: 1; transform: none; }
-  }
-
   /* —— 线尾：虚线延伸，未织完 —— */
   .unfinished {
     width: 1px;
@@ -384,6 +377,10 @@ const knots: Knot[] = [
   @media (max-width: 700px) {
     .spine, .spine-progress { left: 0.4rem; }
     .row { grid-template-columns: 1fr; padding-block: 1.4rem; }
+    /* 单列布局下取消桌面端的负 margin 重合，避免相邻行经线文字叠在一起；
+       点开纬线时也无需再额外腾位 */
+    .row + .row { margin-top: 0; }
+    .row:is(:hover, :focus-within) + .row { margin-top: 0; }
     .warp-entry {
       grid-column: 1;
       text-align: left;
@@ -399,9 +396,6 @@ const knots: Knot[] = [
     .node { left: 0.4rem; top: calc(1.4rem + 0.45em); }
     .weft-line { left: calc(-2.6rem + 0.4rem - 0.45rem); }
     .row.in:is(:hover, :focus-within) .weft-line { width: 2.4rem; }
-    @media (hover: none) {
-      .row.in .weft-line { width: 2.4rem; }
-    }
     /* 线尾虚线对齐左侧经线 */
     .unfinished { margin: 0 0 0 calc(0.4rem - 0.5px); }
 
