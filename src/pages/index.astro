@@ -1,13 +1,10 @@
 ---
 import Base from '../layouts/Base.astro';
 import Explosion from '../components/Explosion.astro';
+import { items } from '../data/now';
 
-// 「最近在做的事」—— 手动维护（见需求文档决策）
-const recent = [
-  { zh: '搭建自动化动量交易系统', en: 'Building an automated momentum trading system' },
-  { zh: '系统性学习 agentic engineering', en: 'Learning agentic engineering, systematically' },
-  { zh: '规划回国后的创业方向', en: 'Planning what to build after moving back' },
-];
+// 「Recently」直接取 Now 页的前 3 条，自动同步 src/data/now.ts
+const recent = items.slice(0, 3);
 
 const links = [
   { href: '/now',      en: 'Now',      zh: '此刻' },

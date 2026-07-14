@@ -1,14 +1,8 @@
 ---
 import Base from '../layouts/Base.astro';
+import { updated, items } from '../data/now';
 
-// Now 页 —— 每 1-2 个月更新一次，双语同步维护
-const updated = '2026-06-22';
-const items = [
-  { zh: '在西雅图旅行，准备落基山脉行程。', en: 'Traveling in Seattle, planning a trip to the Rockies.' },
-  { zh: '搭建自动化动量交易系统（vectorbt + Alpaca）。', en: 'Building an automated momentum trading system.' },
-  { zh: '系统性学习 agentic engineering。', en: 'Learning agentic engineering, systematically.' },
-  { zh: '准备九月回国，规划创业方向。', en: 'Moving back to China in September; figuring out what to build.' },
-];
+// Now 页 —— 每 1-2 个月更新一次，内容在 src/data/now.ts 维护
 ---
 
 <Base title="Now · 田博雨">
