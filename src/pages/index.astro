@@ -10,11 +10,11 @@ const recent = [
 ];
 
 const links = [
-  { href: '/now', label: 'Now' },
-  { href: '/blog', label: 'Blog' },
-  { href: '/projects', label: 'Projects' },
-  { href: '/photos', label: 'Photos' },
-  { href: '/about', label: 'About' },
+  { href: '/now',      en: 'Now',      zh: '此刻' },
+  { href: '/blog',     en: 'Blog',     zh: '文字' },
+  { href: '/projects', en: 'Projects', zh: '在做' },
+  { href: '/photos',   en: 'Photos',   zh: '照片' },
+  { href: '/about',    en: 'About',    zh: '关于' },
 ];
 ---
 
@@ -28,7 +28,12 @@ const links = [
     </div>
 
     <nav class="entries">
-      {links.map((l) => <a href={l.href}>{l.label}</a>)}
+      {links.map((l) => (
+        <a href={l.href}>
+          <span class="link-zh">{l.zh}</span>
+          <span class="link-en">{l.en}</span>
+        </a>
+      ))}
     </nav>
 
     <div class="recent">
@@ -87,10 +92,27 @@ const links = [
     justify-content: center;
   }
   .entries a {
-    position: relative;
-    padding-bottom: 2px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.02rem;
   }
-  .entries a::after {
+  .link-en {
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+    font-style: italic;
+  }
+  .link-zh {
+    font-family: var(--serif);
+    font-size: 1rem;
+    letter-spacing: 0.06em;
+  }
+  .link-zh {
+    position: relative;
+    padding-bottom: 3px;
+  }
+  .link-zh::after {
     content: '';
     position: absolute;
     left: 0; bottom: 0;
@@ -98,7 +120,7 @@ const links = [
     background: var(--accent);
     transition: width 0.25s ease;
   }
-  .entries a:hover::after { width: 100%; }
+  .entries a:hover .link-zh::after { width: 100%; }
 
   .recent {
     margin-top: 4rem;

@@ -16,11 +16,11 @@ const {
 } = Astro.props;
 
 const nav = [
-  { href: '/now', label: 'Now' },
-  { href: '/blog', label: 'Blog' },
-  { href: '/projects', label: 'Projects' },
-  { href: '/photos', label: 'Photos' },
-  { href: '/about', label: 'About' },
+  { href: '/now',      en: 'Now',      zh: '此刻' },
+  { href: '/blog',     en: 'Blog',     zh: '文字' },
+  { href: '/projects', en: 'Projects', zh: '在做' },
+  { href: '/photos',   en: 'Photos',   zh: '照片' },
+  { href: '/about',    en: 'About',    zh: '关于' },
 ];
 ---
 
@@ -50,7 +50,10 @@ const nav = [
         </a>
         <nav>
           {nav.map((item) => (
-            <a href={item.href}>{item.label}</a>
+            <a href={item.href}>
+              <span class="nav-zh">{item.zh}</span>
+              <span class="nav-en">{item.en}</span>
+            </a>
           ))}
         </nav>
       </header>
@@ -96,6 +99,34 @@ const nav = [
         display: flex;
         gap: 1.75rem;
         font-size: 0.9rem;
+      }
+      .site-header nav a {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.02rem;
+      }
+      .nav-zh {
+        font-family: var(--serif);
+        font-size: 0.92rem;
+        letter-spacing: 0.06em;
+        position: relative;
+        padding-bottom: 3px;
+      }
+      .nav-zh::after {
+        content: '';
+        position: absolute;
+        left: 0; bottom: 0;
+        width: 0; height: 1px;
+        background: var(--accent);
+        transition: width 0.25s ease;
+      }
+      .site-header nav a:hover .nav-zh::after { width: 100%; }
+      .nav-en {
+        font-family: var(--sans);
+        font-size: 0.68rem;
+        color: var(--ink-faint);
+        font-style: italic;
       }
       main { min-height: 60vh; }
       .site-footer {
