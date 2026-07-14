@@ -1,18 +1,67 @@
 ---
 import Base from '../layouts/Base.astro';
-// Projects —— 正在做的事，非简历项目经历。展示范围待定。
+
+// Projects —— 正在做的事，非简历项目经历
+const projects = [
+  {
+    zh: '自动化动量交易系统',
+    en: 'Automated Momentum Trading System',
+    descZh: '动量策略的回测与自动化实盘执行。',
+    descEn: 'Backtesting and automated live execution for momentum strategies.',
+    status: '进行中',
+  },
+];
 ---
 
 <Base title="Projects · 田博雨">
   <section class="wrap page">
     <span class="eyebrow">Projects</span>
     <h1>在做的事</h1>
-    <p class="empty">（项目列表待补充。）</p>
+    <ul>
+      {projects.map((p) => (
+        <li>
+          <div class="title">
+            <span class="zh">{p.zh}</span>
+            <span class="en">{p.en}</span>
+          </div>
+          <p class="desc">
+            <span class="zh">{p.descZh}</span>
+            <span class="en">{p.descEn}</span>
+          </p>
+          <span class="status">{p.status}</span>
+        </li>
+      ))}
+    </ul>
   </section>
 </Base>
 
 <style>
   .page { max-width: 42rem; padding-block: 4rem; }
   .page h1 { font-size: clamp(2rem, 5vw, 2.75rem); margin-top: 0.4rem; }
-  .empty { margin-top: 2rem; color: var(--ink-faint); }
+  ul { list-style: none; margin-top: 2.5rem; }
+  li { padding-block: 1.1rem; border-bottom: 1px solid var(--line); }
+  .title { display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; }
+  .title .zh { font-size: 1.1rem; }
+  .title .en {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--ink-faint);
+  }
+  .desc { margin-top: 0.4rem; }
+  .desc .zh { display: block; color: var(--ink-soft); font-size: 0.95rem; }
+  .desc .en {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--ink-faint);
+    font-style: italic;
+    margin-top: 0.2rem;
+  }
+  .status {
+    display: inline-block;
+    margin-top: 0.6rem;
+    font-size: 0.78rem;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+  }
 </style>
