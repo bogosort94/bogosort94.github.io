@@ -1,23 +1,471 @@
 ---
 import Base from '../layouts/Base.astro';
-// About —— 叙事式，非简历。内容待细化。
+
+// About ——「经纬」：经线（纵）= 人生经历；纬线（横）= 专业方向。
+// 纬线默认收起，光标触到经线上的结点时才显现（触屏设备始终显示）。
+
+type L = { zh: string; en: string };
+type Weft = { mark: string; title: L; text?: L; img?: { src: string; alt: string } };
+type Knot = { mark: L; title: L; text?: L; wefts: Weft[] };
+
+const knots: Knot[] = [
+  {
+    mark: { zh: '1994 · 辽宁鞍山', en: 'Anshan, Liaoning' },
+    title: { zh: '起点', en: 'Beginning' },
+    wefts: [
+      {
+        mark: 'Origin',
+        title: { zh: '钢都', en: 'Steel City' },
+      },
+    ],
+  },
+  {
+    mark: { zh: '2012 · 上海', en: 'Shanghai' },
+    title: { zh: '上海交通大学', en: 'Shanghai Jiao Tong University' },
+    wefts: [
+      {
+        mark: 'ACM',
+        title: { zh: 'ACM 班', en: 'ACM Class' },
+        text: {
+          zh: '科学家的秘密基地。',
+          en: 'A secret base for scientists.',
+        },
+        img: { src: '/images/acm-class-emblem.png', alt: '上海交大 ACM 班班徽：齿轮与字母组成的徽记，Always Challenge Miracles, Since 2002' },
+      },
+    ],
+  },
+  {
+    mark: { zh: '2016 · 安娜堡', en: 'Ann Arbor' },
+    title: { zh: '密歇根大学', en: 'University of Michigan' },
+    wefts: [
+      { mark: 'Research', title: { zh: '数据库', en: 'Databases' } },
+      { mark: 'Research', title: { zh: '分布式系统', en: 'Distributed Systems' } },
+    ],
+  },
+  {
+    mark: { zh: '2020 · 旧金山湾区', en: 'San Francisco Bay Area' },
+    title: { zh: '谷歌', en: 'Google' },
+    wefts: [
+      {
+        mark: 'Senior Software Engineer',
+        title: { zh: 'Infra Spanner', en: 'Infra Spanner' },
+        text: {
+          zh: '谷歌的全球分布式数据库，把数据同步到各大洲。',
+          en: "Google's globally distributed database, replicating data across continents.",
+        },
+      },
+    ],
+  },
+];
 ---
 
-<Base title="About · 田博雨">
-  <section class="wrap page">
-    <span class="eyebrow">About</span>
-    <h1>关于</h1>
-    <div class="prose">
-      <p>（叙事式介绍，待补充。）</p>
-      <p class="en">(Narrative bio, to be written.)</p>
+<Base title="About · 田博雨" description="关于田博雨">
+  <section class="wrap about">
+    <header class="head">
+      <span class="eyebrow">About</span>
+      <h1>关于</h1>
+    </header>
+
+    <div class="loom">
+      <span class="spine" aria-hidden="true"></span>
+      <span class="spine-progress" aria-hidden="true"></span>
+
+      {knots.map((k) => (
+        <div
+          class:list={['row', { woven: k.wefts.length > 0 }]}
+          tabindex={k.wefts.length > 0 ? 0 : undefined}
+        >
+          <span class="node" aria-hidden="true"></span>
+          <div class="warp-entry">
+            <span class="mark">{k.mark.zh} <span class="mark-en">· {k.mark.en}</span></span>
+            <h2>{k.title.zh}</h2>
+            <span class="en-title">{k.title.en}</span>
+            {k.text && <p>{k.text.zh}</p>}
+            {k.text && <p class="en-text">{k.text.en}</p>}
+          </div>
+          {k.wefts.length > 0 && (
+            <div class="wefts">
+              <div class="wefts-inner">
+                {k.wefts.map((w) => (
+                  <div class="weft">
+                    <span class="weft-line" aria-hidden="true"></span>
+                    <div class="weft-body">
+                      <div class="weft-text">
+                        <span class="mark">{w.mark}</span>
+                        <h3>{w.title.zh}</h3>
+                        <span class="en-title">{w.title.en}</span>
+                        {w.text && <p>{w.text.zh}</p>}
+                        {w.text && <p class="en-text">{w.text.en}</p>}
+                      </div>
+                      {w.img && <img class="weft-img" src={w.img.src} alt={w.img.alt} loading="lazy" />}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
     </div>
+
+    <div class="unfinished" aria-hidden="true"></div>
   </section>
 </Base>
 
 <style>
-  .page { max-width: 42rem; padding-block: 4rem; }
-  .page h1 { font-size: clamp(2rem, 5vw, 2.75rem); margin-top: 0.4rem; }
-  .prose { margin-top: 2.5rem; }
-  .prose p { margin-block: 1.2rem; }
-  .prose .en { color: var(--ink-faint); font-style: italic; }
+  .about { padding-block: 4rem 2rem; }
+
+  /* —— 页头（与其他页标题一致）—— */
+  .head { max-width: 42rem; margin-inline: auto; text-align: center; }
+  .head h1 { font-size: clamp(2rem, 5vw, 2.75rem); margin-top: 0.4rem; }
+  .en-title {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 0.82em;
+    color: var(--ink-faint);
+    display: block;
+    margin-top: 0.15rem;
+  }
+  .warp-entry .en-text,
+  .weft-body .en-text {
+    font-family: 'Inter', sans-serif;
+    font-style: italic;
+    font-size: 0.85rem;
+    color: var(--ink-faint);
+    margin-top: 0.25rem;
+    line-height: 1.7;
+    max-width: 21rem;
+  }
+  .warp-entry .en-text { margin-left: auto; }
+  .weft-body .en-text { max-width: 21rem; }
+
+  /* —— 织机 —— */
+  .loom {
+    position: relative;
+    max-width: 46rem;
+    margin: 3rem auto 0;
+  }
+  .spine, .spine-progress {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 1px;
+    transform: translateX(-0.5px);
+  }
+  .spine { height: 100%; background: var(--line); }
+  .spine-progress {
+    height: 0;
+    background: var(--accent);
+    transition: height 0.15s linear;
+  }
+
+  .row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding-block: 1.5rem;
+    outline: none;
+  }
+  /* 左右交替后，相邻行（异侧）纵向上可部分重合 */
+  .row + .row {
+    margin-top: -4.5rem;
+    transition: margin-top 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.15s;
+  }
+  /* 上一行展开纬线时，下一行释放负 margin，腾出展开空间；
+     延迟与纬线展开同步，收起时也同步退回 */
+  .row:is(:hover, :focus-within) + .row {
+    margin-top: 0;
+    transition-delay: 0s;
+  }
+
+  /* 经：默认在左侧，右对齐 */
+  .warp-entry {
+    grid-column: 1;
+    grid-row: 1;
+    text-align: right;
+    padding-right: 3rem;
+  }
+  /* 纬：收在经线里（高度为 0），激活时经线拉长、纬线织在拉长的那段上 */
+  .wefts {
+    grid-column: 2;
+    grid-row: 2;
+    display: grid;
+    grid-template-rows: 0fr;
+    /* 收起时略延迟，等纬线先退回经线 */
+    transition: grid-template-rows 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.15s;
+  }
+  .wefts-inner {
+    overflow: hidden;
+    min-height: 0;
+    /* 左缘外扩，容纳穿过经线的那一小段纬线，避免被 overflow 裁掉 */
+    margin-left: -0.6rem;
+    padding-left: 3.6rem;
+  }
+  .wefts-inner > .weft:first-child { margin-top: 1.1rem; }
+
+  /* —— 左右交替：偶数行镜像，经线在右、纬线在左 —— */
+  .row:nth-child(even) .warp-entry {
+    grid-column: 2;
+    text-align: left;
+    padding-right: 0;
+    padding-left: 3rem;
+  }
+  .row:nth-child(even) .wefts { grid-column: 1; }
+  .row:nth-child(even) .wefts-inner {
+    margin-left: 0;
+    margin-right: -0.6rem;
+    padding-left: 0;
+    padding-right: 3.6rem;
+  }
+  .row:nth-child(even) .warp-entry p { margin-left: 0; margin-right: auto; }
+  .row:nth-child(even) .warp-entry .en-text { margin-left: 0; margin-right: auto; }
+  /* 偶数行纬线方向反转：图片在右、文字在左 */
+  .row:nth-child(even) .weft-body { flex-direction: row-reverse; }
+  .row:nth-child(even) .weft-body p,
+  .row:nth-child(even) .weft-body .en-text { margin-left: 0; margin-right: auto; }
+
+  .node {
+    position: absolute;
+    left: 50%;
+    top: calc(1.5rem + 0.45em);
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    transform: translateX(-50%) scale(0);
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.15s;
+  }
+
+  .warp-entry {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .row.in .warp-entry { opacity: 1; transform: none; }
+  .row.in .node { transform: translateX(-50%) scale(1); }
+
+  /* 有纬线的结点：一条小横线穿过圆点，暗示此处有纬 */
+  .row.woven .node::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0.9rem;
+    height: 1px;
+    background: var(--accent);
+    transform: translate(-50%, -50%);
+  }
+  /* hover 时圆点微微放大 */
+  .row.woven.in:is(:hover, :focus-within) .node {
+    transform: translateX(-50%) scale(1.45);
+  }
+
+  .mark {
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .mark-en {
+    text-transform: none;
+    letter-spacing: 0.04em;
+    font-style: italic;
+    opacity: 0.85;
+  }
+  .warp-entry h2 {
+    font-size: 1.35rem;
+    margin-top: 0.35rem;
+  }
+  .warp-entry p {
+    margin-top: 0.55rem;
+    margin-left: auto;
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+    line-height: 1.8;
+    max-width: 21rem;
+  }
+
+  /* —— 纬线：默认收起为经线上的短刻痕，触之展开 —— */
+  .weft { position: relative; }
+  .weft + .weft { margin-top: 1.2rem; }
+
+  .weft-line {
+    position: absolute;
+    /* 起点在经线左侧 0.45rem 处，向右生长 */
+    left: calc(-3rem - 0.45rem);
+    top: 0.55em;
+    height: 1px;
+    width: 0;
+    background: var(--accent);
+    /* 收起时立即退回，经线随后才缩短 */
+    transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  /* 偶数行：纬线从经线右侧起，向左生长 */
+  .row:nth-child(even) .weft-line {
+    left: auto;
+    right: calc(-3rem - 0.45rem);
+  }
+  .weft-body {
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .weft-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.4rem;
+  }
+  .weft-img {
+    width: 5.5rem;
+    height: auto;
+    margin-top: 0.3rem;
+    opacity: 0.88;
+    flex-shrink: 0;
+  }
+  @media (prefers-color-scheme: dark) {
+    /* 深蓝徽记在深色底上反转为浅色 */
+    .weft-img { filter: invert(1) hue-rotate(180deg) brightness(1.15); opacity: 0.8; }
+  }
+  .weft-body .mark { color: var(--accent); opacity: 0.75; }
+  .weft-body h3 {
+    font-size: 1.15rem;
+    margin-top: 0.3rem;
+  }
+  .weft-body p {
+    margin-top: 0.5rem;
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    line-height: 1.8;
+    max-width: 21rem;
+  }
+
+  /* 展开：hover / 键盘聚焦。先拉长经线，纬线随后织入 */
+  .row.in:is(:hover, :focus-within) .wefts {
+    grid-template-rows: 1fr;
+    transition-delay: 0s;
+  }
+  .row.in:is(:hover, :focus-within) .weft-line {
+    width: 3.4rem;
+    transition-delay: 0.28s;
+  }
+  .row.in:is(:hover, :focus-within) .weft-body {
+    opacity: 1;
+    transform: none;
+    transition-delay: 0.36s;
+  }
+  /* 多条纬线依次织入 */
+  .row.in:is(:hover, :focus-within) .weft:nth-child(2) .weft-line { transition-delay: 0.38s; }
+  .row.in:is(:hover, :focus-within) .weft:nth-child(2) .weft-body { transition-delay: 0.46s; }
+  .row.in:is(:hover, :focus-within) .weft:nth-child(3) .weft-line { transition-delay: 0.48s; }
+  .row.in:is(:hover, :focus-within) .weft:nth-child(3) .weft-body { transition-delay: 0.56s; }
+
+  /* 触屏设备：无 hover，纬线常显 */
+  @media (hover: none) {
+    .wefts { grid-template-rows: 1fr; }
+    .row.in .weft-line { width: 3.4rem; }
+    .row.in .weft-body { opacity: 1; transform: none; }
+  }
+
+  /* —— 线尾：虚线延伸，未织完 —— */
+  .unfinished {
+    width: 1px;
+    height: 6rem;
+    margin: 0 auto;
+    background: repeating-linear-gradient(
+      to bottom,
+      var(--line) 0 5px,
+      transparent 5px 11px
+    );
+    mask-image: linear-gradient(to bottom, black 30%, transparent);
+    -webkit-mask-image: linear-gradient(to bottom, black 30%, transparent);
+  }
+  /* —— 移动端：单列，经线靠左，纬线挂在经条目下方 —— */
+  @media (max-width: 700px) {
+    .spine, .spine-progress { left: 0.4rem; }
+    .row { grid-template-columns: 1fr; padding-block: 1.4rem; }
+    .warp-entry {
+      grid-column: 1;
+      text-align: left;
+      padding: 0 0 0 2.6rem;
+    }
+    .warp-entry p { margin-left: 0; }
+    .wefts { grid-column: 1; }
+    .wefts-inner {
+      margin-left: -0.1rem;
+      padding-left: 2.7rem;
+    }
+    .wefts-inner > .weft:first-child { margin-top: 1.1rem; }
+    .node { left: 0.4rem; top: calc(1.4rem + 0.45em); }
+    .weft-line { left: calc(-2.6rem + 0.4rem - 0.45rem); }
+    .row.in:is(:hover, :focus-within) .weft-line { width: 2.4rem; }
+    @media (hover: none) {
+      .row.in .weft-line { width: 2.4rem; }
+    }
+    /* 线尾虚线对齐左侧经线 */
+    .unfinished { margin: 0 0 0 calc(0.4rem - 0.5px); }
+
+    /* 取消桌面端的左右交替：所有行回归经左纬下 */
+    .row:nth-child(even) .warp-entry {
+      grid-column: 1;
+      text-align: left;
+      padding: 0 0 0 2.6rem;
+    }
+    .row:nth-child(even) .wefts { grid-column: 1; }
+    .row:nth-child(even) .wefts-inner {
+      margin-left: -0.1rem;
+      margin-right: 0;
+      padding-left: 2.7rem;
+      padding-right: 0;
+    }
+    .row:nth-child(even) .warp-entry p,
+    .row:nth-child(even) .warp-entry .en-text {
+      margin-left: 0;
+      margin-right: 0;
+    }
+    .row:nth-child(even) .weft-body { flex-direction: row; }
+    .row:nth-child(even) .weft-body p,
+    .row:nth-child(even) .weft-body .en-text {
+      margin-left: 0;
+      margin-right: 0;
+    }
+    .row:nth-child(even) .weft-line {
+      left: calc(-2.6rem + 0.4rem - 0.45rem);
+      right: auto;
+    }
+  }
 </style>
+
+<script>
+  const loom = document.querySelector<HTMLElement>('.loom');
+  const progress = document.querySelector<HTMLElement>('.spine-progress');
+  const rows = document.querySelectorAll<HTMLElement>('.loom .row');
+
+  // 入场：滚动到 20% 可见时织入
+  const io = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      }
+    },
+    { threshold: 0.2 },
+  );
+  rows.forEach((r) => io.observe(r));
+
+  // 经线随滚动「织」下来
+  function weave() {
+    if (!loom || !progress) return;
+    const rect = loom.getBoundingClientRect();
+    const anchor = window.innerHeight * 0.72;
+    const passed = Math.min(Math.max(anchor - rect.top, 0), rect.height);
+    progress.style.height = `${passed}px`;
+  }
+  weave();
+  window.addEventListener('scroll', weave, { passive: true });
+  window.addEventListener('resize', weave);
+  // 纬线展开会拉长织机，进度线跟着重算
+  if (loom) new ResizeObserver(weave).observe(loom);
+</script>

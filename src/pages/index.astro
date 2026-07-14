@@ -62,6 +62,12 @@ const links = [
     text-align: center;
   }
   .tagline { margin-top: -5rem; cursor: default; }
+  @media (max-width: 640px) {
+    .tagline { margin-top: -2.5rem; }
+  }
+  @media (max-width: 380px) {
+    .tagline { margin-top: 0; }
+  }
   .tagline h1 {
     font-size: clamp(2.2rem, 6.5vw, 3.75rem);
     font-weight: 500;
