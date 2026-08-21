@@ -14,16 +14,35 @@ type Props = { post: CollectionEntry<'blog'> };
 const { post } = Astro.props;
 const { Content } = await post.render();
 
+const isEn = post.data.lang === 'en';
+
+// 另一语言版本：对方必须存在且已发布，否则不显示切换
+const published = await getCollection('blog', ({ data }) => !data.draft);
+const other = post.data.translation
+  ? published.find((p) => p.slug === post.data.translation)
+  : undefined;
+
 const fmt = (d: Date) =>
-  d.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' });
+  isEn
+    ? d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })
+    : d.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'UTC' });
 ---
 
-<Base title={`${post.data.title} · 田博雨`} description={post.data.description}>
+<Base
+  title={`${post.data.title} · ${isEn ? 'Boyu Tian' : '田博雨'}`}
+  description={post.data.description}
+  lang={post.data.lang}
+>
   <article class="wrap post">
     <header>
       <time>{fmt(post.data.date)}</time>
       <h1>{post.data.title}</h1>
       <p class="tags">{post.data.tags.join(' · ')}</p>
+      {other && (
+        <a class="lang-switch" href={`/blog/${other.slug}`} hreflang={other.data.lang}>
+          {other.data.lang === 'en' ? 'Read in English' : '阅读中文版'}
+        </a>
+      )}
     </header>
     <div class="prose">
       <Content />
@@ -37,6 +56,17 @@ const fmt = (d: Date) =>
   .post time { color: var(--ink-faint); font-size: 0.85rem; }
   .post h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); margin-top: 0.5rem; }
   .post .tags { color: var(--ink-faint); font-size: 0.8rem; margin-top: 0.75rem; }
+  .post .lang-switch {
+    display: inline-block;
+    margin-top: 1.1rem;
+    font-size: 0.8rem;
+    font-style: italic;
+    color: var(--ink-faint);
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 2px;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+  .post .lang-switch:hover { color: var(--accent); border-color: var(--accent); }
   .prose :global(p) { margin-block: 1.2rem; }
   .prose :global(h2) { font-size: 1.6rem; margin-top: 2.5rem; }
   .prose :global(h3) { font-size: 1.3rem; margin-top: 2rem; }

@@ -2,11 +2,16 @@
 import Base from '../../layouts/Base.astro';
 import { getCollection } from 'astro:content';
 
-const posts = (await getCollection('blog', ({ data }) => !data.draft))
+const published = await getCollection('blog', ({ data }) => !data.draft);
+const slugs = new Set(published.map((p) => p.slug));
+
+// 双语成对的文章在列表里只出现一次，以中文版为准
+const posts = published
+  .filter((p) => !(p.data.lang === 'en' && p.data.translation && slugs.has(p.data.translation)))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
 const fmt = (d: Date) =>
-  d.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' });
+  d.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'UTC' });
 ---
 
 <Base title="Blog · 田博雨">

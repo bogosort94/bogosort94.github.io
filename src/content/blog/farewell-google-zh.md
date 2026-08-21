@@ -4,6 +4,7 @@ date: 2026-08-21
 tags: [Career, Google, Spanner]
 description: 在 Spanner 待了六年之后，我要回成都，做点自己的东西。
 lang: zh
+translation: farewell-google
 draft: false
 ---
 

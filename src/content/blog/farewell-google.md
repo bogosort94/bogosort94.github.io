@@ -4,6 +4,7 @@ date: 2026-08-21
 tags: [Career, Google, Spanner]
 description: After six years on Spanner, I'm moving back to Chengdu to build something of my own.
 lang: en
+translation: farewell-google-zh
 draft: false
 ---
 

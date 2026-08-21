@@ -7,12 +7,15 @@ interface Props {
   description?: string;
   /** 首页不显示顶栏（爆炸图案是主角） */
   bareHeader?: boolean;
+  /** 页面语言，影响 <html lang>（英文版文章传 'en'） */
+  lang?: string;
 }
 
 const {
   title = '田博雨 · Boyu Tian',
   description = '不问前路，随心而动。',
   bareHeader = false,
+  lang = 'zh',
 } = Astro.props;
 
 const nav = [
@@ -25,7 +28,7 @@ const nav = [
 ---
 
 <!doctype html>
-<html lang="zh">
+<html lang={lang}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
